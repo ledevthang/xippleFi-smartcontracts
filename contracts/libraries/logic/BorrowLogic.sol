@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.27;
+pragma solidity 0.8.10;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {DataTypes} from "../types/DataTypes.sol";
 import {ReserveLogic} from "../logic/ReserveLogic.sol";
+import {ValidationLogic} from "../logic/ValidationLogic.sol";
 import {UserConfiguration} from "../configuration/UserConfiguration.sol";
 import {ReserveConfiguration} from "../configuration/ReserveConfiguration.sol";
 import {IVariableDebtToken} from "../../interfaces/IVariableDebtToken.sol";
@@ -50,6 +51,29 @@ library BorrowLogic {
             address isolationModeCollateralAddress,
             uint256 isolationModeDebtCeiling
         ) = userConfig.getIsolationModeState(reservesData, reservesList);
+
+
+        ValidationLogic.validateBorrow(
+            reservesData,
+            reservesList,
+            eModeCategories,
+            DataTypes.ValidateBorrowParams({
+                reserveCache: reserveCache,
+                userConfig: userConfig,
+                asset: params.asset,
+                userAddress: params.onBehalfOf,
+                amount: params.amount,
+                interestRateMode: params.interestRateMode,
+                maxStableLoanPercent: params.maxStableRateBorrowSizePercent,
+                reservesCount: params.reservesCount,
+                oracle: params.oracle,
+                userEModeCategory: params.userEModeCategory,
+                priceOracleSentinel: params.priceOracleSentinel,
+                isolationModeActive: isolationModeActive,
+                isolationModeCollateralAddress: isolationModeCollateralAddress,
+                isolationModeDebtCeiling: isolationModeDebtCeiling
+            })
+        );
 
         uint256 currentStableRate = 0;
         bool isFirstBorrowing = false;

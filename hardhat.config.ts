@@ -6,14 +6,16 @@ import * as dotenv from "dotenv";
 dotenv.config();
 
 const config: HardhatUserConfig = {
+
   solidity: {
-    version: "0.8.27",
+    version: '0.8.10',
     settings: {
       optimizer: {
         enabled: true,
-        runs: 200
-      }
-    }
+        runs: 100000,
+      },
+      evmVersion: 'london',
+    },
   },
   networks: {
     XRPL_EVM_Sidechain_Devnet: {

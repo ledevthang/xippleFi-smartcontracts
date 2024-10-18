@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.27;
+pragma solidity 0.8.10;
 
 library DataTypes {
     
@@ -146,6 +146,43 @@ library DataTypes {
         uint256 reserveFactor;
         address reserve;
         address aToken;
+    }
+    
+    struct FinalizeTransferParams {
+        address asset;
+        address from;
+        address to;
+        uint256 amount;
+        uint256 balanceFromBefore;
+        uint256 balanceToBefore;
+        uint256 reservesCount;
+        address oracle;
+        uint8 fromEModeCategory;
+    }
+    
+    struct CalculateUserAccountDataParams {
+        UserConfigurationMap userConfig;
+        uint256 reservesCount;
+        address user;
+        address oracle;
+        uint8 userEModeCategory;
+    }
+
+    struct ValidateBorrowParams {
+        ReserveCache reserveCache;
+        UserConfigurationMap userConfig;
+        address asset;
+        address userAddress;
+        uint256 amount;
+        InterestRateMode interestRateMode;
+        uint256 maxStableLoanPercent;
+        uint256 reservesCount;
+        address oracle;
+        uint8 userEModeCategory;
+        address priceOracleSentinel;
+        bool isolationModeActive;
+        address isolationModeCollateralAddress;
+        uint256 isolationModeDebtCeiling;
     }
 }
 

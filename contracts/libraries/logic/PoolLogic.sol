@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
-pragma solidity  0.8.27;
+pragma solidity  0.8.10;
 
 import {DataTypes} from "../types/DataTypes.sol";
 import {Errors} from "../helpers/Errors.sol";
 import {ReserveLogic} from "./ReserveLogic.sol";
+import {GenericLogic} from "./GenericLogic.sol";
 
 library PoolLogic {
 
@@ -40,6 +41,40 @@ library PoolLogic {
         reservesList[params.reservesCount] = params.asset;
         return true;
 
+    }
+
+
+    function executeGetUserAccountData(
+        mapping(address => DataTypes.ReserveData) storage reservesData,
+        mapping(uint256 => address) storage reservesList,
+        mapping(uint8 => DataTypes.EModeCategory) storage eModeCategories,
+        DataTypes.CalculateUserAccountDataParams memory params
+    )
+    external
+    view
+    returns (
+        uint256 totalCollateralBase,
+        uint256 totalDebtBase,
+        uint256 availableBorrowsBase,
+        uint256 currentLiquidationThreshold,
+        uint256 ltv,
+        uint256 healthFactor
+    )
+    {
+    (
+        totalCollateralBase,
+        totalDebtBase,
+        ltv,
+        currentLiquidationThreshold,
+        healthFactor,
+
+    ) = GenericLogic.calculateUserAccountData(reservesData, reservesList, eModeCategories, params);
+
+    availableBorrowsBase = GenericLogic.calculateAvailableBorrows(
+        totalCollateralBase,
+        totalDebtBase,
+        ltv
+        );
     }
 
     function isContract (address account) internal view returns (bool) {

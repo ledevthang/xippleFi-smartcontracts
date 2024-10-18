@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.27;
+pragma solidity 0.8.10;
 
 import {DataTypes} from "../types/DataTypes.sol";
 import {WadRayMath} from "../math/WadRayMath.sol";
@@ -46,6 +46,38 @@ library ReserveLogic {
         reserve.interestRateStrategyAddress = interestRateStrategyAddress;
 
     } 
+
+    function getNormalizedDebt(
+        DataTypes.ReserveData storage reserve
+    ) internal view returns (uint256) {
+        uint40 timestamp = reserve.lastUpdateTimestamp;
+
+        //solium-disable-next-line
+        if (timestamp == block.timestamp) {
+            return reserve.variableBorrowIndex;
+        } else {
+            return
+                MathUtils.calculateCompoundedInterest(reserve.currentVariableBorrowRate, timestamp, block.timestamp).rayMul(
+                reserve.variableBorrowIndex
+            );
+        }
+    }
+
+    function getNormalizedIncome(
+        DataTypes.ReserveData storage reserve
+    ) internal view returns (uint256) {
+        uint40 timestamp = reserve.lastUpdateTimestamp;
+
+        //solium-disable-next-line
+        if (timestamp == block.timestamp) {
+            return reserve.liquidityIndex;
+        } else {
+        return
+            MathUtils.calculateLinearInterest(reserve.currentLiquidityRate, timestamp).rayMul(
+                reserve.liquidityIndex
+            );
+        }
+    }
 
     struct UpdateInterestRatesLocalVars {
         uint256 nextLiquidityRate;

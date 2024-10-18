@@ -1,16 +1,31 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.27;
+pragma solidity 0.8.10;
 
 import "./PoolStorage.sol";
 import {Errors} from "../libraries/helpers/Errors.sol";
 import {PoolLogic} from "../libraries/logic/PoolLogic.sol";
 import {SupplyLogic} from "../libraries/logic/SupplyLogic.sol";
+import {ReserveLogic} from "../libraries/logic/ReserveLogic.sol"; 
+
 import {ReserveConfiguration} from "../libraries/configuration/ReserveConfiguration.sol";
+import {IPoolAddressesProvider} from "../interfaces/IPoolAddressesProvider.sol";
+import {BorrowLogic} from "../libraries/logic/BorrowLogic.sol";
+import {DataTypes} from "../libraries/types/DataTypes.sol";
 
 
 contract Pool is PoolStorage {
 
+    using ReserveLogic for DataTypes.ReserveData;
+
+
     address PoolConfigurator;
+    IPoolAddressesProvider public immutable ADDRESSES_PROVIDER;
+
+
+    constructor(IPoolAddressesProvider provider){
+        ADDRESSES_PROVIDER = provider;
+        _maxStableRateBorrowSizePercent = 0.25e4;
+    }
 
     modifier onlyPoolConfigurator() {
         _onlyPoolConfigurator();
@@ -19,7 +34,7 @@ contract Pool is PoolStorage {
 
     function _onlyPoolConfigurator() internal view virtual {
         require(
-        PoolConfigurator == msg.sender,
+        ADDRESSES_PROVIDER.getPoolConfigurator() == msg.sender,
         Errors.CALLER_NOT_POOL_CONFIGURATOR
         );
     }
@@ -48,11 +63,58 @@ contract Pool is PoolStorage {
         uint16 referralCode,
         address onBehalfOf
     ) public {
-
+        BorrowLogic.executeBorrow(
+      _reserves,
+      _reservesList,
+      _eModeCategories,
+      _usersConfig[onBehalfOf],
+      DataTypes.ExecuteBorrowParams({
+        asset: asset,
+        user: msg.sender,
+        onBehalfOf: onBehalfOf,
+        amount: amount,
+        interestRateMode: DataTypes.InterestRateMode(interestRateMode),
+        referralCode: referralCode,
+        releaseUnderlying: true,
+        maxStableRateBorrowSizePercent: _maxStableRateBorrowSizePercent,
+        reservesCount: _reservesCount,
+        oracle: ADDRESSES_PROVIDER.getPriceOracle(),
+        userEModeCategory: _usersEModeCategory[onBehalfOf],
+        priceOracleSentinel: ADDRESSES_PROVIDER.getPriceOracleSentinel()
+            })
+        );
     }
 
     function repay(address asset, uint256 amount) public {
 
+    }
+
+    function finalizeTransfer(
+        address asset,
+        address from,
+        address to,
+        uint256 amount,
+        uint256 balanceFromBefore,
+        uint256 balanceToBefore
+    ) external {
+        require(msg.sender == _reserves[asset].aTokenAddress, Errors.CALLER_NOT_ATOKEN);
+        SupplyLogic.executeFinalizeTransfer(
+            _reserves,
+            _reservesList,
+            _eModeCategories,
+            _usersConfig,
+            DataTypes.FinalizeTransferParams({
+            asset: asset,
+            from: from,
+            to: to,
+            amount: amount,
+            balanceFromBefore: balanceFromBefore,
+            balanceToBefore: balanceToBefore,
+            reservesCount: _reservesCount,
+            oracle: ADDRESSES_PROVIDER.getPriceOracle(),
+            fromEModeCategory: _usersEModeCategory[from]
+            })
+        );
     }
 
     function initReserve (
@@ -61,7 +123,7 @@ contract Pool is PoolStorage {
         address stableDebtAddress,
         address variableDebtAddress,
         address interestRateStrategyAddress
-    ) external onlyPoolConfigurator {
+    ) external {
         if(PoolLogic.executeInitReserve(
             _reserves, 
             _reservesList, 
@@ -82,5 +144,85 @@ contract Pool is PoolStorage {
     function MAX_NUMBER_RESERVES() public pure returns (uint16) {
         return ReserveConfiguration.MAX_RESERVES_COUNT;
     }
+
+    function getReserveData(
+        address asset
+    ) external view virtual returns (DataTypes.ReserveData memory) {
+        return _reserves[asset];
+    }
+
+    function getUserAccountData(
+        address user
+    )
+    external
+    view
+    virtual
+    returns (
+        uint256 totalCollateralBase,
+        uint256 totalDebtBase,
+        uint256 availableBorrowsBase,
+        uint256 currentLiquidationThreshold,
+        uint256 ltv,
+        uint256 healthFactor
+    )
+    {
+        return
+        PoolLogic.executeGetUserAccountData(
+            _reserves,
+            _reservesList,
+            _eModeCategories,
+            DataTypes.CalculateUserAccountDataParams({
+                userConfig: _usersConfig[user],
+                reservesCount: _reservesCount,
+                user: user,
+                oracle: ADDRESSES_PROVIDER.getPriceOracle(),
+                userEModeCategory: _usersEModeCategory[user]
+            })
+        );
+    }
+
+    function getConfiguration(
+        address asset
+    ) external view virtual returns (DataTypes.ReserveConfigurationMap memory) {
+        return _reserves[asset].configuration;
+    }
+
+    function getUserConfiguration(
+        address user
+    ) external view virtual returns (DataTypes.UserConfigurationMap memory) {
+        return _usersConfig[user];
+    }
+
+    function getReserveNormalizedIncome(
+        address asset
+    ) external view virtual returns (uint256) {
+        return _reserves[asset].getNormalizedIncome();
+    }
+
+    function getReserveNormalizedVariableDebt(
+        address asset
+    ) external view virtual returns (uint256) {
+        return _reserves[asset].getNormalizedDebt();
+    }
+
+    function getReservesList() external view virtual returns (address[] memory) {
+    uint256 reservesListCount = _reservesCount;
+    uint256 droppedReservesCount = 0;
+    address[] memory reservesList = new address[](reservesListCount);
+
+    for (uint256 i = 0; i < reservesListCount; i++) {
+        if (_reservesList[i] != address(0)) {
+            reservesList[i - droppedReservesCount] = _reservesList[i];
+                } else {
+                droppedReservesCount++;
+                }
+        }
+
+        assembly {
+            mstore(reservesList, sub(reservesListCount, droppedReservesCount))
+        }
+        return reservesList;
+    }
+
 
 }

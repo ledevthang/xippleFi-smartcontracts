@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.27;
+pragma solidity 0.8.10;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 
@@ -29,7 +29,7 @@ contract XipplePriceFeed is Ownable{
     constructor(
         uint8 decimals_,
         string memory description_
-    )Ownable(_msgSender()){
+    )Ownable(){
         decimals = decimals_;
         s_description = description_;
     }

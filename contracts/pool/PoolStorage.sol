@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.27;
+pragma solidity 0.8.10;
 
 import {DataTypes} from "../libraries/types/DataTypes.sol";
 import {ReserveLogic} from "../libraries/logic/ReserveLogic.sol";
@@ -19,8 +19,14 @@ contract PoolStorage {
 
     mapping(address => DataTypes.UserConfigurationMap) internal _usersConfig;
 
+    mapping(uint8 => DataTypes.EModeCategory) internal _eModeCategories;
+
+    mapping(address => uint8) internal _usersEModeCategory;
+
+    uint64 internal _maxStableRateBorrowSizePercent;
 
     uint16 internal _reservesCount;
+
 
 
 }
