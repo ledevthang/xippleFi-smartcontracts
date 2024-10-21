@@ -38,3 +38,6 @@ main()
 
 //0x34665b1a5954AaDF7BD64e9a3E8B320F803b0DcE
 //0x8dE15744Ea253A748F11A509d9450BFBEd1b14Ee
+
+// npx hardhat run scripts/deploy.ts  --network XRPL_EVM_Sidechain_Devnet
+// npx hardhat verify 0x280cdFEC15679eFf1Cd5c9aAD8b3c3B7a757d278 "0xCb6fA80CA791A039314fbAf88752EdbE4d86F54F" --network XRPL_EVM_Sidechain_Devnet

@@ -349,4 +349,42 @@ library ValidationLogic {
    		}
   	}
 
+    function validateWithdraw(
+        DataTypes.ReserveCache memory reserveCache,
+        uint256 amount,
+        uint256 userBalance
+    ) internal pure {
+        require(amount != 0, Errors.INVALID_AMOUNT);
+        require(amount <= userBalance, Errors.NOT_ENOUGH_AVAILABLE_USER_BALANCE);
+
+        (bool isActive, , , , bool isPaused) = reserveCache.reserveConfiguration.getFlags();
+        require(isActive, Errors.RESERVE_INACTIVE);
+        require(!isPaused, Errors.RESERVE_PAUSED);
+    }
+
+    function validateRepay(
+        DataTypes.ReserveCache memory reserveCache,
+        uint256 amountSent,
+        DataTypes.InterestRateMode interestRateMode,
+        address onBehalfOf,
+        uint256 stableDebt,
+        uint256 variableDebt
+    ) internal view {
+    	require(amountSent != 0, Errors.INVALID_AMOUNT);
+    	require(
+      		amountSent != type(uint256).max || msg.sender == onBehalfOf,
+      		Errors.NO_EXPLICIT_AMOUNT_TO_REPAY_ON_BEHALF
+    	);
+
+    (bool isActive, , , , bool isPaused) = reserveCache.reserveConfiguration.getFlags();
+    require(isActive, Errors.RESERVE_INACTIVE);
+    require(!isPaused, Errors.RESERVE_PAUSED);
+
+    require(
+      (stableDebt != 0 && interestRateMode == DataTypes.InterestRateMode.STABLE) ||
+        (variableDebt != 0 && interestRateMode == DataTypes.InterestRateMode.VARIABLE),
+      Errors.NO_DEBT_OF_SELECTED_TYPE
+    );
+  }
+
 }

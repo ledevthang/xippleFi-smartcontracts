@@ -184,6 +184,23 @@ library DataTypes {
         address isolationModeCollateralAddress;
         uint256 isolationModeDebtCeiling;
     }
+
+    struct ExecuteWithdrawParams {
+        address asset;
+        uint256 amount;
+        address to;
+        uint256 reservesCount;
+        address oracle;
+        uint8 userEModeCategory;
+    }
+
+    struct ExecuteRepayParams {
+        address asset;
+        uint256 amount;
+        InterestRateMode interestRateMode;
+        address onBehalfOf;
+        bool useATokens;
+    }
 }
 
 

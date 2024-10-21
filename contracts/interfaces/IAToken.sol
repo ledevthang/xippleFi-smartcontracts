@@ -4,7 +4,7 @@ pragma solidity 0.8.10;
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IScaledBalanceToken} from "./IScaledBalanceToken.sol";
 
-interface IAToken is IERC20, IScaledBalanceToken {
+interface IAToken is IERC20, IScaledBalanceToken   {
 
     event BalanceTransfer(address indexed from, address indexed to, uint256 value, uint256 index);
 

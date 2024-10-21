@@ -9,6 +9,7 @@ import {ReserveConfiguration} from "../configuration/ReserveConfiguration.sol";
 import {IERC20} from "@openzeppelin/contracts/interfaces/IERC20.sol";
 import {IAToken} from "../../interfaces/IAToken.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {WadRayMath} from "../math/WadRayMath.sol";
 
 library SupplyLogic {
 
@@ -17,6 +18,7 @@ library SupplyLogic {
     using UserConfiguration for DataTypes.UserConfigurationMap;
     using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
     using SafeERC20 for IERC20;
+    using WadRayMath for uint256;
 
     event ReserveUsedAsCollateralEnabled(address indexed reserve, address indexed user);
     event ReserveUsedAsCollateralDisabled(address indexed reserve, address indexed user);
@@ -68,6 +70,65 @@ library SupplyLogic {
     }
 
     	emit Supply(params.asset, msg.sender, params.onBehalfOf, params.amount);
+    }
+
+    function executeWithdraw(
+      mapping(address => DataTypes.ReserveData) storage reservesData,
+      mapping(uint256 => address) storage reservesList,
+      mapping(uint8 => DataTypes.EModeCategory) storage eModeCategories,
+      DataTypes.UserConfigurationMap storage userConfig,
+      DataTypes.ExecuteWithdrawParams memory params
+  ) external returns (uint256) {
+      DataTypes.ReserveData storage reserve = reservesData[params.asset];
+      DataTypes.ReserveCache memory reserveCache = reserve.cache();
+
+      reserve.updateState(reserveCache);
+
+      uint256 userBalance = IAToken(reserveCache.aTokenAddress).scaledBalanceOf(msg.sender).rayMul(
+        reserveCache.nextLiquidityIndex
+      );
+
+      uint256 amountToWithdraw = params.amount;
+
+      if (params.amount == type(uint256).max) {
+        amountToWithdraw = userBalance;
+      }
+
+      ValidationLogic.validateWithdraw(reserveCache, amountToWithdraw, userBalance);
+
+      reserve.updateInterestRates(reserveCache, params.asset, 0, amountToWithdraw);
+
+      bool isCollateral = userConfig.isUsingAsCollateral(reserve.id);
+
+      if (isCollateral && amountToWithdraw == userBalance) {
+        userConfig.setUsingAsCollateral(reserve.id, false);
+        emit ReserveUsedAsCollateralDisabled(params.asset, msg.sender);
+      }
+
+      IAToken(reserveCache.aTokenAddress).burn(
+        msg.sender,
+        params.to,
+        amountToWithdraw,
+        reserveCache.nextLiquidityIndex
+      );
+
+      if (isCollateral && userConfig.isBorrowingAny()) {
+        ValidationLogic.validateHFAndLtv(
+          reservesData,
+          reservesList,
+          eModeCategories,
+          userConfig,
+          params.asset,
+          msg.sender,
+          params.reservesCount,
+          params.oracle,
+          params.userEModeCategory
+        );
+      }
+
+      emit Withdraw(params.asset, msg.sender, params.to, amountToWithdraw);
+
+      return amountToWithdraw;
     }
 
 

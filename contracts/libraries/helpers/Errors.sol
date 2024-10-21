@@ -16,12 +16,15 @@ library Errors {
     string public constant RESERVE_PAUSED = "29";
     string public constant BORROWING_NOT_ENABLED = "30";
     string public constant STABLE_BORROWING_NOT_ENABLED = "31"; 
+    string public constant NOT_ENOUGH_AVAILABLE_USER_BALANCE = "32";
     string public constant INVALID_INTEREST_RATE_MODE_SELECTED = "33";
     string public constant COLLATERAL_BALANCE_IS_ZERO = "34";
     string public constant HEALTH_FACTOR_LOWER_THAN_LIQUIDATION_THRESHOLD = "35";
     string public constant COLLATERAL_CANNOT_COVER_NEW_BORROW = "36";
     string public constant COLLATERAL_SAME_AS_BORROWING_CURRENCY = "37";
     string public constant AMOUNT_BIGGER_THAN_MAX_LOAN_SIZE_STABLE = "38"; 
+    string public constant NO_DEBT_OF_SELECTED_TYPE = "39";
+    string public constant NO_EXPLICIT_AMOUNT_TO_REPAY_ON_BEHALF = "40";
     string public constant BORROW_CAP_EXCEEDED = "50";
     string public constant SUPPLY_CAP_EXCEEDED = "51";
     string public  constant DEBT_CEILING_EXCEEDED = "53"; 

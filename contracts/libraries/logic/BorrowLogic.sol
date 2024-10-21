@@ -2,6 +2,7 @@
 pragma solidity 0.8.10;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {DataTypes} from "../types/DataTypes.sol";
 import {ReserveLogic} from "../logic/ReserveLogic.sol";
 import {ValidationLogic} from "../logic/ValidationLogic.sol";
@@ -11,6 +12,9 @@ import {IVariableDebtToken} from "../../interfaces/IVariableDebtToken.sol";
 import {IStableDebtToken} from "../../interfaces/IStableDebtToken.sol";
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import {IAToken} from "../../interfaces/IAToken.sol";
+import {Helpers} from "../helpers/Helpers.sol";
+
+import {IsolationModeLogic} from "../logic/IsolationModeLogic.sol";
 
 
 
@@ -21,6 +25,7 @@ library BorrowLogic {
     using UserConfiguration for DataTypes.UserConfigurationMap;
     using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
     using SafeCast for uint256;
+	using SafeERC20 for IERC20;
 
     event Borrow(
         address indexed reserve,
@@ -30,6 +35,14 @@ library BorrowLogic {
         DataTypes.InterestRateMode interestRateMode,
         uint256 borrowRate,
         uint16 indexed referralCode
+    );
+
+    event Repay(
+        address indexed reserve,
+        address indexed user,
+        address indexed repayer,
+        uint256 amount,
+        bool useATokens
     );
 
     event IsolationModeTotalDebtUpdated(address indexed asset, uint256 totalDebt);
@@ -134,5 +147,93 @@ library BorrowLogic {
             params.referralCode
         );
     }
+
+    function executeRepay(
+        mapping(address => DataTypes.ReserveData) storage reservesData,
+        mapping(uint256 => address) storage reservesList,
+        DataTypes.UserConfigurationMap storage userConfig,
+        DataTypes.ExecuteRepayParams memory params
+    ) external returns (uint256) {
+        DataTypes.ReserveData storage reserve = reservesData[params.asset];
+        DataTypes.ReserveCache memory reserveCache = reserve.cache();
+        reserve.updateState(reserveCache);
+
+        (uint256 stableDebt, uint256 variableDebt) = Helpers.getUserCurrentDebt(
+            params.onBehalfOf,
+            reserveCache
+        );
+
+    ValidationLogic.validateRepay(
+        reserveCache,
+        params.amount,
+        params.interestRateMode,
+        params.onBehalfOf,
+        stableDebt,
+        variableDebt
+    );
+
+    uint256 paybackAmount = params.interestRateMode == DataTypes.InterestRateMode.STABLE
+      ? stableDebt
+      : variableDebt;
+
+    // Allows a user to repay with aTokens without leaving dust from interest.
+    if (params.useATokens && params.amount == type(uint256).max) {
+      params.amount = IAToken(reserveCache.aTokenAddress).balanceOf(msg.sender);
+    }
+
+    if (params.amount < paybackAmount) {
+      paybackAmount = params.amount;
+    }
+
+    if (params.interestRateMode == DataTypes.InterestRateMode.STABLE) {
+      (reserveCache.nextTotalStableDebt, reserveCache.nextAvgStableBorrowRate) = IStableDebtToken(
+        reserveCache.stableDebtTokenAddress
+      ).burn(params.onBehalfOf, paybackAmount);
+    } else {
+      reserveCache.nextScaledVariableDebt = IVariableDebtToken(
+        reserveCache.variableDebtTokenAddress
+      ).burn(params.onBehalfOf, paybackAmount, reserveCache.nextVariableBorrowIndex);
+    }
+
+    reserve.updateInterestRates(
+      reserveCache,
+      params.asset,
+      params.useATokens ? 0 : paybackAmount,
+      0
+    );
+
+    if (stableDebt + variableDebt - paybackAmount == 0) {
+      userConfig.setBorrowing(reserve.id, false);
+    }
+
+    IsolationModeLogic.updateIsolatedDebtIfIsolated(
+      reservesData,
+      reservesList,
+      userConfig,
+      reserveCache,
+      paybackAmount
+    );
+
+    if (params.useATokens) {
+      IAToken(reserveCache.aTokenAddress).burn(
+        msg.sender,
+        reserveCache.aTokenAddress,
+        paybackAmount,
+        reserveCache.nextLiquidityIndex
+      );
+    } else {
+      IERC20(params.asset).safeTransferFrom(msg.sender, reserveCache.aTokenAddress, paybackAmount);
+      IAToken(reserveCache.aTokenAddress).handleRepayment(
+        msg.sender,
+        params.onBehalfOf,
+        paybackAmount
+      );
+    }
+
+        emit Repay(params.asset, params.onBehalfOf, msg.sender, paybackAmount, params.useATokens);
+
+        return paybackAmount;
+    }
+
 
 }

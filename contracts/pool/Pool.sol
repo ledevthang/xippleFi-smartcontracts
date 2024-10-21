@@ -53,7 +53,20 @@ contract Pool is PoolStorage {
     }
 
     function widthdraw(address asset, uint256 amount, address to) public returns(uint256){
-
+        return SupplyLogic.executeWithdraw(
+            _reserves,
+            _reservesList,
+            _eModeCategories,
+            _usersConfig[msg.sender],
+            DataTypes.ExecuteWithdrawParams({
+                asset: asset,
+                amount: amount,
+                to: to,
+                reservesCount: _reservesCount,
+                oracle: ADDRESSES_PROVIDER.getPriceOracle(),
+                userEModeCategory: _usersEModeCategory[msg.sender]
+            })
+        );
     }
 
     function borrow(
@@ -85,8 +98,25 @@ contract Pool is PoolStorage {
         );
     }
 
-    function repay(address asset, uint256 amount) public {
-
+    function repay(
+        address asset,
+        uint256 amount,
+        uint256 interestRateMode,
+        address onBehalfOf
+    ) public  returns (uint256) {
+    return
+        BorrowLogic.executeRepay(
+            _reserves,
+            _reservesList,
+            _usersConfig[onBehalfOf],
+            DataTypes.ExecuteRepayParams({
+                asset: asset,
+                amount: amount,
+                interestRateMode: DataTypes.InterestRateMode(interestRateMode),
+                onBehalfOf: onBehalfOf,
+                useATokens: false
+            })
+        );
     }
 
     function finalizeTransfer(
