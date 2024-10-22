@@ -10,6 +10,7 @@ import {IERC20} from "@openzeppelin/contracts/interfaces/IERC20.sol";
 import {IAToken} from "../../interfaces/IAToken.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {WadRayMath} from "../math/WadRayMath.sol";
+import {Errors} from "../helpers/Errors.sol";
 
 library SupplyLogic {
 
@@ -186,5 +187,55 @@ library SupplyLogic {
     }
   }
 
+  function executeUseReserveAsCollateral(
+    mapping(address => DataTypes.ReserveData) storage reservesData,
+    mapping(uint256 => address) storage reservesList,
+    mapping(uint8 => DataTypes.EModeCategory) storage eModeCategories,
+    DataTypes.UserConfigurationMap storage userConfig,
+    address asset,
+    bool useAsCollateral,
+    uint256 reservesCount,
+    address priceOracle,
+    uint8 userEModeCategory
+  ) external {
+    DataTypes.ReserveData storage reserve = reservesData[asset];
+    DataTypes.ReserveCache memory reserveCache = reserve.cache();
+
+    uint256 userBalance = IERC20(reserveCache.aTokenAddress).balanceOf(msg.sender);
+
+    ValidationLogic.validateSetUseReserveAsCollateral(reserveCache, userBalance);
+
+    if (useAsCollateral == userConfig.isUsingAsCollateral(reserve.id)) return;
+
+    if (useAsCollateral) {
+      require(
+        ValidationLogic.validateUseAsCollateral(
+          reservesData,
+          reservesList,
+          userConfig,
+          reserveCache.reserveConfiguration
+        ),
+        Errors.USER_IN_ISOLATION_MODE_OR_LTV_ZERO
+      );
+
+      userConfig.setUsingAsCollateral(reserve.id, true);
+      emit ReserveUsedAsCollateralEnabled(asset, msg.sender);
+    } else {
+      userConfig.setUsingAsCollateral(reserve.id, false);
+      ValidationLogic.validateHFAndLtv(
+        reservesData,
+        reservesList,
+        eModeCategories,
+        userConfig,
+        asset,
+        msg.sender,
+        reservesCount,
+        priceOracle,
+        userEModeCategory
+      );
+
+      emit ReserveUsedAsCollateralDisabled(asset, msg.sender);
+    }
+    }
 }
 

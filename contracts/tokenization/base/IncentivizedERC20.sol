@@ -14,8 +14,6 @@ abstract contract IncentivizedERC20 is Context, IERC20Metadata {
     using WadRayMath for uint256;
     using SafeCast for uint256;
 
-    
-
     struct UserState {
         uint128 balance;
         uint128 additionalData;

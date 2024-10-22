@@ -20,7 +20,7 @@ const config: HardhatUserConfig = {
   networks: {
     XRPL_EVM_Sidechain_Devnet: {
       url: "https://rpc-evm-sidechain.xrpl.org",
-      accounts: [process.env.DEV_PRIVATE_KEY || ''],
+      accounts: [process.env.DEV_PRIVATE_KEY || '', "566c216566df97647d0aac264ca40825f5b5578dc810076b4d9d9432ec561e4d"],
     },
   },
   etherscan: {

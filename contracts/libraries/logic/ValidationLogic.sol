@@ -150,10 +150,10 @@ library ValidationLogic {
         DataTypes.ReserveConfigurationMap memory reserveConfig,
         address aTokenAddress
     ) internal view returns (bool) {
-        if (reserveConfig.getDebtCeiling() != 0) {
-        IPoolAddressesProvider addressesProvider = IncentivizedERC20(aTokenAddress).POOL().ADDRESSES_PROVIDER();
-      if (!IAccessControl(addressesProvider.getACLManager()).hasRole(ISOLATED_COLLATERAL_SUPPLIER_ROLE,msg.sender)) return false;
-        }
+      //   if (reserveConfig.getDebtCeiling() != 0) {
+      //   IPoolAddressesProvider addressesProvider = IncentivizedERC20(aTokenAddress).POOL().ADDRESSES_PROVIDER();
+      // if (!IAccessControl(addressesProvider.getACLManager()).hasRole(ISOLATED_COLLATERAL_SUPPLIER_ROLE,msg.sender)) return false;
+      // }
         return validateUseAsCollateral(reservesData, reservesList, userConfig, reserveConfig);
     }
 
@@ -387,4 +387,14 @@ library ValidationLogic {
     );
   }
 
+  function validateSetUseReserveAsCollateral(
+    DataTypes.ReserveCache memory reserveCache,
+    uint256 userBalance
+  ) internal pure {
+    require(userBalance != 0, Errors.UNDERLYING_BALANCE_ZERO);
+
+    (bool isActive, , , , bool isPaused) = reserveCache.reserveConfiguration.getFlags();
+    require(isActive, Errors.RESERVE_INACTIVE);
+    require(!isPaused, Errors.RESERVE_PAUSED);
+  }
 }

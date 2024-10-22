@@ -33,7 +33,7 @@ contract PoolAddressesProvider is Ownable, IPoolAddressesProvider{
 
     
 
-    function getAddress(bytes32 id) public view override returns (address) {
+    function getContractAddress(bytes32 id) public view override returns (address) {
         return _addresses[id];
     }
 
@@ -49,7 +49,7 @@ contract PoolAddressesProvider is Ownable, IPoolAddressesProvider{
     ) external override onlyOwner{}
 
     function getPool() external view override returns (address) {
-        return getAddress(POOL);
+        return getContractAddress(POOL);
     }
 
     function setPoolImpl(address newPoolImpl) external override onlyOwner {
@@ -59,7 +59,7 @@ contract PoolAddressesProvider is Ownable, IPoolAddressesProvider{
     }
 
     function getPoolConfigurator() external view override returns (address) {
-        return getAddress(POOL_CONFIGURATOR);
+        return getContractAddress(POOL_CONFIGURATOR);
     }
 
      function setPoolConfiguratorImpl(address newPoolConfiguratorImpl) external override onlyOwner {
@@ -69,7 +69,7 @@ contract PoolAddressesProvider is Ownable, IPoolAddressesProvider{
     }
 
     function getPriceOracle() external view override returns (address) {
-        return getAddress(PRICE_ORACLE);
+        return getContractAddress(PRICE_ORACLE);
     }
 
     function setPriceOracle(address newPriceOracle) external override onlyOwner {
@@ -79,7 +79,7 @@ contract PoolAddressesProvider is Ownable, IPoolAddressesProvider{
     }
 
     function getACLManager() external view override returns (address) {
-        return getAddress(ACL_MANAGER);
+        return getContractAddress(ACL_MANAGER);
     }
 
     function setACLManager(address newAclManager) external override onlyOwner {
@@ -89,7 +89,7 @@ contract PoolAddressesProvider is Ownable, IPoolAddressesProvider{
     }
 
     function getACLAdmin() external view override returns (address) {
-        return getAddress(ACL_ADMIN);
+        return getContractAddress(ACL_ADMIN);
     } 
 
     function setACLAdmin(address newAclAdmin) external override onlyOwner {
@@ -99,7 +99,7 @@ contract PoolAddressesProvider is Ownable, IPoolAddressesProvider{
     }
 
     function getPriceOracleSentinel() external view override returns (address) {
-        return getAddress(PRICE_ORACLE_SENTINEL);
+        return getContractAddress(PRICE_ORACLE_SENTINEL);
     }
 
     function setPriceOracleSentinel(address newPriceOracleSentinel) external override onlyOwner {
@@ -109,7 +109,7 @@ contract PoolAddressesProvider is Ownable, IPoolAddressesProvider{
     }
 
     function getPoolDataProvider() external view override returns (address) {
-        return getAddress(DATA_PROVIDER);
+        return getContractAddress(DATA_PROVIDER);
     }
 
     function setPoolDataProvider(address newDataProvider) external override onlyOwner {

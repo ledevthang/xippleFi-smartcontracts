@@ -11,14 +11,13 @@ import {ReserveConfiguration} from "../libraries/configuration/ReserveConfigurat
 import {IPoolAddressesProvider} from "../interfaces/IPoolAddressesProvider.sol";
 import {BorrowLogic} from "../libraries/logic/BorrowLogic.sol";
 import {DataTypes} from "../libraries/types/DataTypes.sol";
+import {IPool} from "../interfaces/IPool.sol";
 
 
-contract Pool is PoolStorage {
+contract Pool is PoolStorage, IPool {
 
     using ReserveLogic for DataTypes.ReserveData;
 
-
-    address PoolConfigurator;
     IPoolAddressesProvider public immutable ADDRESSES_PROVIDER;
 
 
@@ -181,6 +180,41 @@ contract Pool is PoolStorage {
         return _reserves[asset];
     }
 
+    function setConfiguration(
+        address asset,
+        DataTypes.ReserveConfigurationMap calldata configuration
+    ) external onlyPoolConfigurator {
+        require(asset != address(0), Errors.ZERO_ADDRESS_NOT_VALID);
+        require(_reserves[asset].id != 0 || _reservesList[0] == asset, Errors.ASSET_NOT_LISTED);
+        _reserves[asset].configuration = configuration;
+    }
+
+    function configureEModeCategory(
+        uint8 id,
+        DataTypes.EModeCategory memory category
+    ) external virtual override onlyPoolConfigurator {
+    // category 0 is reserved for volatile heterogeneous assets and it's always disabled
+        require(id != 0, Errors.EMODE_CATEGORY_RESERVED);
+        _eModeCategories[id] = category;
+    }
+
+    function setUserUseReserveAsCollateral(
+    address asset,
+    bool useAsCollateral
+  ) public  {
+    SupplyLogic.executeUseReserveAsCollateral(
+      _reserves,
+      _reservesList,
+      _eModeCategories,
+      _usersConfig[msg.sender],
+      asset,
+      useAsCollateral,
+      _reservesCount,
+      ADDRESSES_PROVIDER.getPriceOracle(),
+      _usersEModeCategory[msg.sender]
+    );
+    }
+
     function getUserAccountData(
         address user
     )
@@ -213,7 +247,7 @@ contract Pool is PoolStorage {
 
     function getConfiguration(
         address asset
-    ) external view virtual returns (DataTypes.ReserveConfigurationMap memory) {
+    ) external view  returns (DataTypes.ReserveConfigurationMap memory) {
         return _reserves[asset].configuration;
     }
 
@@ -254,5 +288,20 @@ contract Pool is PoolStorage {
         return reservesList;
     }
 
+    function getUserEMode(address user) external view virtual override returns (uint256) {
+        return _usersEModeCategory[user];
+    }
+
+    function getEModeCategoryData(
+        uint8 id
+    ) external view virtual override returns (DataTypes.EModeCategory memory) {
+        return _eModeCategories[id];
+    }
+
+    function resetIsolationModeTotalDebt(
+        address asset
+    ) external virtual override onlyPoolConfigurator {
+        PoolLogic.executeResetIsolationModeTotalDebt(_reserves, asset);
+    }
 
 }

@@ -5,10 +5,18 @@ import {DataTypes} from "../types/DataTypes.sol";
 import {Errors} from "../helpers/Errors.sol";
 import {ReserveLogic} from "./ReserveLogic.sol";
 import {GenericLogic} from "./GenericLogic.sol";
+import {WadRayMath} from "../math/WadRayMath.sol";
+import {ReserveConfiguration} from "../configuration/ReserveConfiguration.sol";
+
+
 
 library PoolLogic {
 
     using ReserveLogic for DataTypes.ReserveData;
+    using WadRayMath for uint256;
+    using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
+
+    event IsolationModeTotalDebtUpdated(address indexed asset, uint256 totalDebt);
 
     
     function executeInitReserve (
@@ -83,6 +91,15 @@ library PoolLogic {
             size := extcodesize(account)
         }
         return size > 0;
+    }
+
+    function executeResetIsolationModeTotalDebt(
+        mapping(address => DataTypes.ReserveData) storage reservesData,
+        address asset
+    ) external {
+        require(reservesData[asset].configuration.getDebtCeiling() == 0, Errors.DEBT_CEILING_NOT_ZERO);
+        reservesData[asset].isolationModeTotalDebt = 0;
+        emit IsolationModeTotalDebtUpdated(asset, 0);
     }
 
 }

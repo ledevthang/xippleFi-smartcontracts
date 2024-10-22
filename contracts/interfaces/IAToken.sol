@@ -35,6 +35,7 @@ interface IAToken is IERC20, IScaledBalanceToken   {
         bytes32 s
     ) external;
 
+
     function UNDERLYING_ASSET_ADDRESS() external view returns (address);
 
     function RESERVE_TREASURY_ADDRESS() external view returns (address);

@@ -7,6 +7,11 @@ library Errors {
     string public constant CALLER_NOT_ATOKEN = "11";
     string public constant RESERVE_ALREADY_ADDED = "14";
     string public constant NO_MORE_RESERVES_ALLOWED = "15";
+    string public constant EMODE_CATEGORY_RESERVED = "16";
+    string public constant INVALID_EMODE_CATEGORY_ASSIGNMENT = "17";
+    string public constant RESERVE_LIQUIDITY_NOT_ZERO = "18";
+    string public constant INVALID_RESERVE_PARAMS = "20";
+    string public constant INVALID_EMODE_CATEGORY_PARAMS = "21";
     string public constant CALLER_MUST_BE_POOL = "23";
     string public constant INVALID_MINT_AMOUNT = "24";
     string public constant INVALID_BURN_AMOUNT = "25";
@@ -25,6 +30,7 @@ library Errors {
     string public constant AMOUNT_BIGGER_THAN_MAX_LOAN_SIZE_STABLE = "38"; 
     string public constant NO_DEBT_OF_SELECTED_TYPE = "39";
     string public constant NO_EXPLICIT_AMOUNT_TO_REPAY_ON_BEHALF = "40";
+    string public constant UNDERLYING_BALANCE_ZERO = "43";
     string public constant BORROW_CAP_EXCEEDED = "50";
     string public constant SUPPLY_CAP_EXCEEDED = "51";
     string public  constant DEBT_CEILING_EXCEEDED = "53"; 
@@ -32,6 +38,7 @@ library Errors {
     string public constant INCONSISTENT_EMODE_CATEGORY = "58";
     string public constant ASSET_NOT_BORROWABLE_IN_ISOLATION = "60";
     string public constant RESERVE_ALREADY_INITIALIZED = "61";
+    string public constant USER_IN_ISOLATION_MODE_OR_LTV_ZERO = "62";
     string public constant INVALID_LTV = "63";
     string public constant INVALID_LIQ_THRESHOLD = "64";
     string public constant INVALID_LIQ_BONUS = "65";
@@ -47,9 +54,13 @@ library Errors {
     string public constant ZERO_ADDRESS_NOT_VALID = "77";
     string public constant INVALID_EXPIRATION = "78";
     string public constant INVALID_SIGNATURE = "79";
+    string public constant DEBT_CEILING_NOT_ZERO = "81";
+    string public constant ASSET_NOT_LISTED = "82";
     string public constant INVALID_OPTIMAL_USAGE_RATIO = "83";
     string public constant INVALID_OPTIMAL_STABLE_TO_TOTAL_DEBT_RATIO = "84";
     string public constant UNDERLYING_CANNOT_BE_RESCUED = "85";
     string public constant OPERATION_NOT_SUPPORTED = "86";
+    string public constant STABLE_BORROWING_ENABLED = "88";
     string public constant SILOED_BORROWING_VIOLATION = "89";
+    string public constant RESERVE_DEBT_NOT_ZERO = "90";
 }

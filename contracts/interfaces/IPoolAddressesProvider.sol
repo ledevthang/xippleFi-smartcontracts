@@ -38,7 +38,7 @@ interface IPoolAddressesProvider {
 
   	function setMarketId(string calldata newMarketId) external;
 
-  	function getAddress(bytes32 id) external view returns (address);
+  	function getContractAddress(bytes32 id) external view returns (address);
 
   	function setAddressAsProxy(bytes32 id, address newImplementationAddress) external;
 
