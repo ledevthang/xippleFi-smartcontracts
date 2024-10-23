@@ -48,14 +48,12 @@ async function main () {
     const tx = await poolAddressesProvider.setPoolConfiguratorImpl(poolConfiguratorAddress)
     await tx.wait()
 
-
-    // console.log(await pool.getAddress())
 }
 
 main()
 
-//0x34665b1a5954AaDF7BD64e9a3E8B320F803b0DcE
-//0x8dE15744Ea253A748F11A509d9450BFBEd1b14Ee
+// Pool 0xF33d5ce7B4F6BeBc8edDb07192F279A21F0697b1
+// PoolConfigurator 0x7c2feE768b0A3dA58F518c84b8ac06E2B9cB058C
 
 // npx hardhat run scripts/deploy.ts  --network XRPL_EVM_Sidechain_Devnet
-// npx hardhat verify 0x8dBD487418b28cE39CFd9532f951465845f2be23 "0x18F6e95b15f8D3D5aE1e87752c22C2305736FE70" --network XRPL_EVM_Sidechain_Devnet
+// npx hardhat verify 0x7c2feE768b0A3dA58F518c84b8ac06E2B9cB058C "0x18F6e95b15f8D3D5aE1e87752c22C2305736FE70" --network XRPL_EVM_Sidechain_Devnet

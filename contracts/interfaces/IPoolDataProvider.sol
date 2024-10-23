@@ -3,11 +3,6 @@ pragma solidity 0.8.10;
 
 import {IPoolAddressesProvider} from './IPoolAddressesProvider.sol';
 
-/**
- * @title IPoolDataProvider
- * @author Aave
- * @notice Defines the basic interface of a PoolDataProvider
- */
 interface IPoolDataProvider {
   struct TokenData {
     string symbol;

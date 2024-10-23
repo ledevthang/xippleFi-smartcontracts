@@ -108,10 +108,10 @@ describe("AVVE", function () {
 
             console.log(await pool.getUserConfiguration(owner.address))
 
-            await pool.borrow(await mockUsdc.getAddress(), ethers.parseUnits('1', 6), 2, 0, owner.address)
+            await pool.borrow(await mockUsdc.getAddress(), ethers.parseUnits('35', 6), 2, 0, owner.address)
 
 
-            // console.log(await pool.getUserAccountData(owner.address))
+            console.log(await pool.getUserAccountData(owner.address))
         })
     });
 

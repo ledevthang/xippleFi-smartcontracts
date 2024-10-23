@@ -8,6 +8,54 @@ interface IPool {
     
     function ADDRESSES_PROVIDER() external view returns (IPoolAddressesProvider);
 
+    event Supply(
+        address indexed reserve,
+        address user,
+        address indexed onBehalfOf,
+        uint256 amount
+    );
+
+    event Borrow(
+        address indexed reserve,
+        address user,
+        address indexed onBehalfOf,
+        uint256 amount,
+        DataTypes.InterestRateMode interestRateMode,
+        uint256 borrowRate,
+        uint16 indexed referralCode
+    );
+
+    event Repay(
+        address indexed reserve,
+        address indexed user,
+        address indexed repayer,
+        uint256 amount,
+        bool useATokens
+    );
+
+    event Withdraw(address indexed reserve, address indexed user, address indexed to, uint256 amount);
+
+
+    function supply(address asset, uint256 amount, address onBehalfOf) external;
+
+    function withdraw(address asset, uint256 amount, address to) external returns (uint256);
+
+    function borrow(
+        address asset,
+        uint256 amount,
+        uint256 interestRateMode,
+        uint16 referralCode,
+        address onBehalfOf
+    ) external;
+
+    function repay(
+        address asset,
+        uint256 amount,
+        uint256 interestRateMode,
+        address onBehalfOf
+    ) external returns (uint256);
+
+
     function finalizeTransfer(
         address asset,
         address from,

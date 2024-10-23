@@ -17,81 +17,83 @@ const tokens = {
 }
 
 const AXippleToken = {
-    pool: "0x511fD3e949aD66dca45A4Dbdc1fCbdEDFD50A637",
+    pool: "0xF33d5ce7B4F6BeBc8edDb07192F279A21F0697b1",
     addressProvider: "0x18F6e95b15f8D3D5aE1e87752c22C2305736FE70",
     treasury: "",
-    underlyingAsset: tokens.usdt,
+    underlyingAsset: tokens.bnb,
     incentivesController: "0x0000000000000000000000000000000000000000",
     aTokenDecimals: 18,
-    aTokenName: "Xipple Ripple USDT",
-    aTokenSymbol: "aXippleUSDT"
+    aTokenName: "Xipple Ripple BNB",
+    aTokenSymbol: "aXippleBNB",
+    TOKEN_SYMBOL: "BNB"
 }
 
 async function main () {
 
     const [account] = await hre.ethers.getSigners();
 
-    // const Treasury = await hre.ethers.getContractFactory("Treasury")
-    // const treasury = await Treasury.deploy(account.address);
-    // await treasury.waitForDeployment()
-    // const treasuryAddress = await treasury.getAddress()
-    // AXippleToken.treasury = treasuryAddress
+    const Treasury = await hre.ethers.getContractFactory("Treasury")
+    const treasury = await Treasury.deploy(account.address);
+    await treasury.waitForDeployment()
+    const treasuryAddress = await treasury.getAddress()
+    AXippleToken.treasury = treasuryAddress
+    console.log(treasuryAddress)
 
-    // const StableDebt = await hre.ethers.getContractFactory("StableDebtToken")
-    // const stableDebt = await StableDebt.deploy(AXippleToken.pool, AXippleToken.underlyingAsset, AXippleToken.incentivesController, AXippleToken.aTokenDecimals, "Xipple Ripple USDT Stable Debt", "aXippleUSDTSDT")
-    // await stableDebt.waitForDeployment()
-    // const stableDebtAddress = await stableDebt.getAddress();
+    const StableDebt = await hre.ethers.getContractFactory("StableDebtToken")
+    const stableDebt = await StableDebt.deploy(AXippleToken.pool, AXippleToken.underlyingAsset, AXippleToken.incentivesController, AXippleToken.aTokenDecimals, `Xipple Ripple ${AXippleToken.TOKEN_SYMBOL} Stable Debt`, `aXipple${AXippleToken.TOKEN_SYMBOL}SDT`)
+    await stableDebt.waitForDeployment()
+    const stableDebtAddress = await stableDebt.getAddress();
 
-    // const VariableDebt = await hre.ethers.getContractFactory("VariableDebtToken")
-    // const variableDebt = await VariableDebt.deploy(AXippleToken.pool, AXippleToken.underlyingAsset, AXippleToken.incentivesController, AXippleToken.aTokenDecimals, "Xipple Ripple USDT Variable Debt", "aXippleUSDTVDT")
-    // await variableDebt.waitForDeployment()
-    // const variableDebtAddress = await variableDebt.getAddress();
-
-
-    // const optimalUsageRatio = hre.ethers.parseUnits("0.8", 27)
-    // const baseVariableBorrowRate = hre.ethers.parseUnits("0.02", 27)
-    // const variableRateSlope1 = hre.ethers.parseUnits("0.04", 27)
-    // const variableRateSlope2 = hre.ethers.parseUnits("0.75", 27)
-    // const stableRateSlope1 = hre.ethers.parseUnits("0.02", 27)
-    // const stableRateSlope2 = hre.ethers.parseUnits("0.6", 27)
-    // const baseStableRateOffset = hre.ethers.parseUnits("0.01", 27)
-    // const stableRateExcessOffset = hre.ethers.parseUnits("0.02", 27)
-    // const optimalStableToTotalDebtRatio = hre.ethers.parseUnits("0.2", 27)
-
-    // const InterestRateStrategy = await hre.ethers.getContractFactory("ReserveInterestRateStrategy")
-    // const interestRateStrategy = await InterestRateStrategy.deploy(AXippleToken.addressProvider,
-    //     optimalUsageRatio,
-    //     baseVariableBorrowRate,
-    //     variableRateSlope1,
-    //     variableRateSlope2,
-    //     stableRateSlope1,
-    //     stableRateSlope2,
-    //     baseStableRateOffset,
-    //     stableRateExcessOffset,
-    //     optimalStableToTotalDebtRatio
-    // )
-
-    // await interestRateStrategy.waitForDeployment()
-
-    // const interestRateStrategyAddress = await interestRateStrategy.getAddress()
+    const VariableDebt = await hre.ethers.getContractFactory("VariableDebtToken")
+    const variableDebt = await VariableDebt.deploy(AXippleToken.pool, AXippleToken.underlyingAsset, AXippleToken.incentivesController, AXippleToken.aTokenDecimals, `Xipple Ripple ${AXippleToken.TOKEN_SYMBOL} Variable Debt`, `aXipple${AXippleToken.TOKEN_SYMBOL}VDT`)
+    await variableDebt.waitForDeployment()
+    const variableDebtAddress = await variableDebt.getAddress();
 
 
-    // const AToken = await hre.ethers.getContractFactory("AToken")
-    // const aToken = await AToken.deploy(AXippleToken.pool, AXippleToken.treasury, AXippleToken.underlyingAsset, AXippleToken.incentivesController, AXippleToken.aTokenDecimals, AXippleToken.aTokenName, AXippleToken.aTokenSymbol)
-    // await aToken.waitForDeployment()
-    // const atokenAddress = await aToken.getAddress()
+    const optimalUsageRatio = hre.ethers.parseUnits("0.8", 27)
+    const baseVariableBorrowRate = hre.ethers.parseUnits("0.02", 27)
+    const variableRateSlope1 = hre.ethers.parseUnits("0.04", 27)
+    const variableRateSlope2 = hre.ethers.parseUnits("0.75", 27)
+    const stableRateSlope1 = hre.ethers.parseUnits("0.02", 27)
+    const stableRateSlope2 = hre.ethers.parseUnits("0.6", 27)
+    const baseStableRateOffset = hre.ethers.parseUnits("0.01", 27)
+    const stableRateExcessOffset = hre.ethers.parseUnits("0.02", 27)
+    const optimalStableToTotalDebtRatio = hre.ethers.parseUnits("0.2", 27)
 
-    // const Pool = await hre.ethers.getContractAt("Pool", AXippleToken.pool)
-    const PoolConfigurator = await hre.ethers.getContractAt("PoolConfigurator", "0x95E0e5f14Edd1a28ada89b0F686eAaF81Da91c37")
+    const InterestRateStrategy = await hre.ethers.getContractFactory("ReserveInterestRateStrategy")
+    const interestRateStrategy = await InterestRateStrategy.deploy(AXippleToken.addressProvider,
+        optimalUsageRatio,
+        baseVariableBorrowRate,
+        variableRateSlope1,
+        variableRateSlope2,
+        stableRateSlope1,
+        stableRateSlope2,
+        baseStableRateOffset,
+        stableRateExcessOffset,
+        optimalStableToTotalDebtRatio
+    )
 
-    // const txPool = await Pool.connect(account).initReserve(
-    //     AXippleToken.underlyingAsset,
-    //     atokenAddress,
-    //     stableDebtAddress,
-    //     variableDebtAddress,
-    //     interestRateStrategyAddress
-    // )
-    // await txPool.wait()
+    await interestRateStrategy.waitForDeployment()
+
+    const interestRateStrategyAddress = await interestRateStrategy.getAddress()
+
+
+    const AToken = await hre.ethers.getContractFactory("AToken")
+    const aToken = await AToken.deploy(AXippleToken.pool, AXippleToken.treasury, AXippleToken.underlyingAsset, AXippleToken.incentivesController, AXippleToken.aTokenDecimals, AXippleToken.aTokenName, AXippleToken.aTokenSymbol)
+    await aToken.waitForDeployment()
+    const atokenAddress = await aToken.getAddress()
+
+    const Pool = await hre.ethers.getContractAt("Pool", AXippleToken.pool)
+    const PoolConfigurator = await hre.ethers.getContractAt("PoolConfigurator", "0x7c2feE768b0A3dA58F518c84b8ac06E2B9cB058C")
+
+    const txPool = await Pool.connect(account).initReserve(
+        AXippleToken.underlyingAsset,
+        atokenAddress,
+        stableDebtAddress,
+        variableDebtAddress,
+        interestRateStrategyAddress
+    )
+    await txPool.wait()
 
 
     const txReserveActive = await PoolConfigurator.setReserveActive(AXippleToken.underlyingAsset, true)
@@ -100,6 +102,8 @@ async function main () {
     const txReserveBorrowing = await PoolConfigurator.setReserveBorrowing(AXippleToken.underlyingAsset, true)
     await txReserveBorrowing.wait()
 
+    const txConfig = await PoolConfigurator.configureReserveAsCollateral(AXippleToken.underlyingAsset, 7000, 8000, 10500)
+    await txConfig.wait()
 
 }
 
